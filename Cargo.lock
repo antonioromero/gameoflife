@@ -1,4 +1,4 @@
 [root]
-name = "gol"
+name = "gameoflife"
 version = "0.1.0"
 
