@@ -21,7 +21,7 @@ fn display_board(board: &Board) {
 }
 
 fn cell_transformation(board: &Board, coord: (usize, usize)) -> bool {
-    match count_neighbours(board, coord) {
+    match count_neighbours(board, (coord.0 as i64, coord.1 as i64)) {
         3 if !board[coord.0][coord.1] => true,
         //0 | 1 => false,
         2 | 3 => true,
@@ -29,40 +29,35 @@ fn cell_transformation(board: &Board, coord: (usize, usize)) -> bool {
     }
 }
 
-fn count_neighbours(board: &Board, coord: (usize, usize)) -> u8 {
+fn count_neighbours(board: &Board, coord: (i64, i64)) -> u8 {
 
     let mut neighbours = Vec::new();
+    let c = (coord.0 as i64, coord.1 as i64);
 
-    if coord.0 > 0 {
-        if coord.1 > 0 {
-            neighbours.push(board[coord.0 - 1][coord.1 - 1]);
+    let candidates = vec![
+        (c.0 - 1, c.1 - 1),
+        (c.0 - 1, c.1 + 1),
+        (c.0 - 1, c.1),
+        (c.0 + 1, c.1 - 1),
+        (c.0 + 1, c.1 + 1),
+        (c.0 + 1, c.1),
+        (c.0, c.1 - 1),
+        (c.0, c.1 + 1),
+    ];
+
+    for c in candidates {
+
+        let row = board.get(c.0 as usize);
+        if !row.is_some() {
+            continue;
         }
 
-        if coord.1 < (board[coord.0 - 1].len() - 1) {
-            neighbours.push(board[coord.0 - 1][coord.1 + 1]);
+        let cell = board[c.0 as usize].get(c.1 as usize);
+        if !cell.is_some() {
+            continue;
         }
 
-        neighbours.push(board[coord.0 - 1][coord.1]);
-    }
-
-    if coord.0 < (board.len() - 1) {
-        if coord.1 > 0 {
-            neighbours.push(board[coord.0 + 1][coord.1 - 1]);
-        }
-
-        if coord.1 < (board[coord.0 + 1].len() - 1) {
-            neighbours.push(board[coord.0 + 1][coord.1 + 1]);
-        }
-
-        neighbours.push(board[coord.0 + 1][coord.1]);
-    }
-
-    if coord.1 > 0 {
-        neighbours.push(board[coord.0][coord.1 - 1]);
-    }
-
-    if coord.1 < (board[coord.0].len() - 1) {
-        neighbours.push(board[coord.0][coord.1 + 1]);
+        neighbours.push(board[c.0 as usize][c.1 as usize]);
     }
 
     let alive_count = neighbours.into_iter().filter(|i| *i == true).collect::<Vec<bool>>();
