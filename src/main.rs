@@ -21,7 +21,8 @@ fn display_board(board: &Board) {
 }
 
 fn cell_transformation(board: &Board, coord: (usize, usize)) -> bool {
-    match count_neighbours(board, (coord.0 as i64, coord.1 as i64)) {
+
+    match count_cell_neighbours(board, coord) {
         3 if !board[coord.0][coord.1] => true,
         //0 | 1 => false,
         2 | 3 => true,
@@ -29,7 +30,7 @@ fn cell_transformation(board: &Board, coord: (usize, usize)) -> bool {
     }
 }
 
-fn count_neighbours(board: &Board, coord: (i64, i64)) -> u8 {
+fn count_cell_neighbours(board: &Board, coord: (usize, usize)) -> u8 {
 
     let mut neighbours = Vec::new();
     let c = (coord.0 as i64, coord.1 as i64);
@@ -46,34 +47,37 @@ fn count_neighbours(board: &Board, coord: (i64, i64)) -> u8 {
     ];
 
     for c in candidates {
+        let c0 = c.0 as usize;
+        let c1 = c.1 as usize;
 
-        let row = board.get(c.0 as usize);
+        let row = board.get(c0);
         if !row.is_some() {
             continue;
         }
 
-        let cell = board[c.0 as usize].get(c.1 as usize);
+        let cell = board[c0].get(c1);
         if !cell.is_some() {
             continue;
         }
 
-        neighbours.push(board[c.0 as usize][c.1 as usize]);
+        neighbours.push(board[c0][c1]);
     }
 
     let alive_count = neighbours.into_iter().filter(|i| *i == true).collect::<Vec<bool>>();
     alive_count.len() as u8
 }
 
-fn check_cells_transformations(board: &Board) -> Board {
+fn transform_board(board: &mut Board) {
 
     let mut new_board = board.clone();
+
     for (i, row) in board.iter().enumerate() {
         for (j, _) in row.iter().enumerate() {
             new_board[i][j] = cell_transformation(board, (i, j));
         }
     }
 
-    new_board
+    *board = new_board
 }
 
 fn main() {
@@ -98,7 +102,7 @@ fn main() {
     loop {
         print!("{}[2J", 27 as char);
         display_board(&board);
-        board = check_cells_transformations(&board);
+        transform_board(&mut board);
         thread::sleep(Duration::from_millis(200));
         print!("{}[2J", 27 as char);
     }
