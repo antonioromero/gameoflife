@@ -1,5 +1,14 @@
+extern crate clap;
+
 use std::time::Duration;
 use std::thread;
+use std::path::Path;
+use std::fs::File;
+use std::io::BufReader;
+use std::io::prelude::*;
+
+use clap::{Arg, App};
+
 
 type Board = Vec<Vec<bool>>;
 
@@ -80,24 +89,57 @@ fn transform_board(board: &mut Board) {
     *board = new_board
 }
 
+fn load_board(file: File) -> Board {
+
+    let mut buf_reader = BufReader::new(file);
+    let mut contents = String::new();
+    buf_reader.read_to_string(&mut contents).unwrap();
+
+    let mut board: Board = Vec::new();
+    let mut row = Vec::new();
+    
+    for c in contents.chars() {
+        let c = match c {
+            '0' => false,
+            '1' => true,
+            '\n' => {
+                board.push(row);
+                row = Vec::new();
+                continue;
+            },
+            _ => panic!("The file content is invalid. It may contains only '0', '1' or '\\n'")
+        };
+        row.push(c);
+    }
+
+    if row.len() > 0 {
+        board.push(row);
+    }
+
+    board
+}
+
 fn main() {
+    let matches = App::new("Game of life")
+                          .version("0.1")
+                          .author("Antonio R. <antonioromerooca@gmail.com>")
+                          .about("The \"game\" is a zero-player game, meaning that its evolution is determined by its initial state, requiring no further input.")
+                          .arg(Arg::with_name("INPUT")
+                               .help("Sets the input file to use")
+                               .required(true)
+                               .index(1))
+                          .get_matches();
 
-    let mut board = vec![
-        vec![false, false, false, false, false, false, false, false, false, false],
-        vec![false, false, false, false, false, false, false, false, false, false],
-        vec![false, false, false, false, false, false, false, false, false, false],
-        vec![false, false, false, false, false, false, false, false, false, false],
-        vec![false, false, false, false, false, false, false, false, false, false],
-        vec![false, false, false, false, false, false, false, false, false, false],
-        vec![false, false, false, false, false, false, false, false, false, false],
-        vec![false, false, false, false, false, false, false, false, false, false],
-        vec![false, false, false, false, false, false, false, false, false, false],
-        vec![false, false, false, false, false, false, false, false, false, false],
-    ];
+    let path = Path::new(matches.value_of("INPUT").unwrap());
+    let display = path.display();
 
-    board[0][1] = true;
-    board[1][1] = true;
-    board[1][0] = true;
+    let board_file = match File::open(path) {
+            Err(_) => panic!("couldn't open {}.", display),
+            Ok(file) => file,
+    };
+
+    let mut board = load_board(board_file);
+    println!("{:?}", board);
 
     loop {
         print!("{}[2J", 27 as char);
