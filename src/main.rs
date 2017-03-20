@@ -15,7 +15,7 @@ type Board = Vec<Vec<bool>>;
 fn display_board(board: &Board) {
 
     let dead = ' ';
-    let alive = '▓';
+    let alive = 'o';
 
     for row in board {
         for cell in row {
@@ -97,7 +97,7 @@ fn load_board(file: File) -> Board {
 
     let mut board: Board = Vec::new();
     let mut row = Vec::new();
-    
+
     for c in contents.chars() {
         let c = match c {
             '0' => false,
